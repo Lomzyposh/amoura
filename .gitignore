@@ -15,7 +15,7 @@ logs/
 *.log
 
 # --------------------------------------------------
-# Environment Files / Keys (VERY IMPORTANT)
+# Environment Files / Keys
 # --------------------------------------------------
 .env
 .env.*
@@ -54,18 +54,13 @@ metro-cache/
 *.tsbuildinfo
 
 # --------------------------------------------------
-# Optional: Avoid uploading images/videos accidentally
-# --------------------------------------------------
-*.png
-*.jpg
-*.jpeg
-*.svg
-*.gif
-*.mp4
-*.mov
-
-# --------------------------------------------------
-# Output Folders (your own custom ones)
+# Custom Output Folders
 # --------------------------------------------------
 uploads/
 public/uploads/
+
+# --------------------------------------------------
+# Assets Folder ALLOWED (images, icons, videos)
+# --------------------------------------------------
+# Do NOT ignore assets — keep them tracked
+!assets/
