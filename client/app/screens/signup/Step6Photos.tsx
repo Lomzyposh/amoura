@@ -12,7 +12,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { patchMe } from "@/app/api";
+import { patchMe } from "../../api";
 import { uploadToCloudinary } from "@/utils/cloudinary";
 
 
@@ -65,34 +65,34 @@ export default function Step6Photos() {
 
   const canContinue = photos.some((p) => p !== null);
 
-const handleContinue = async () => {
-  try {
-    // Filter out empty slots
-    const selected = photos.filter((p) => p !== null) as string[];
+  const handleContinue = async () => {
+    try {
+      // Filter out empty slots
+      const selected = photos.filter((p) => p !== null) as string[];
 
-    // Upload each to Cloudinary
-    const uploadedUrls: string[] = [];
-    for (const uri of selected) {
-      const url = await uploadToCloudinary(uri);
-      uploadedUrls.push(url);
+      // Upload each to Cloudinary
+      const uploadedUrls: string[] = [];
+      for (const uri of selected) {
+        const url = await uploadToCloudinary(uri);
+        uploadedUrls.push(url);
+      }
+
+      // Format for backend
+      const formatted = uploadedUrls.map((url, index) => ({
+        url,
+        order: index,
+      }));
+
+      await patchMe({
+        photos: formatted,
+        onboardingStep: 6,
+      });
+
+      router.push("/screens/signup/Step7Bio");
+    } catch (err: any) {
+      console.log("Photo upload error:", err.message);
     }
-
-    // Format for backend
-    const formatted = uploadedUrls.map((url, index) => ({
-      url,
-      order: index,
-    }));
-
-    await patchMe({
-      photos: formatted,
-      onboardingStep: 6,
-    });
-
-    router.push("/screens/signup/Step7Bio");
-  } catch (err: any) {
-    console.log("Photo upload error:", err.message);
-  }
-};
+  };
 
 
   return (

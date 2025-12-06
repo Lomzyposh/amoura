@@ -12,7 +12,7 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
-import { patchMe } from "@/app/api";
+import { patchMe } from "../../api";
 
 export default function Step2DOB() {
   const router = useRouter();

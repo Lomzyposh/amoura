@@ -6,9 +6,10 @@ import {
   Pressable,
   Image,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
@@ -17,7 +18,13 @@ interface StoredUser {
   name?: string;
   email?: string;
   gender?: string;
+  bio?: string;
+  age?: number;
+  location?: string;
+  hobbies?: string[];
   interests?: string[];
+  lookingFor?: string;
+  gallery?: string[]; // image URLs
 }
 
 export default function ProfileScreen() {
@@ -32,7 +39,7 @@ export default function ProfileScreen() {
           setUser(JSON.parse(raw));
         }
       } catch (err) {
-        console.log("Failed to load user from storage:", err);
+        console.log("Failed to load user:", err);
       }
     };
 
@@ -43,7 +50,7 @@ export default function ProfileScreen() {
     try {
       await AsyncStorage.removeItem("amoura_token");
       await AsyncStorage.removeItem("amoura_user");
-      router.replace("/"); // back to splash/login flow
+      router.replace("/");
     } catch (err) {
       console.log("Logout error:", err);
     }
@@ -57,94 +64,136 @@ export default function ProfileScreen() {
       .toUpperCase() || "A";
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.headerRow}>
         <Text style={styles.headerTitle}>Profile</Text>
-        <Ionicons name="settings-outline" size={22} color="#E5E7EB" />
+
+        <Pressable onPress={() => router.push("/settings/settings")}>
+          <Ionicons name="settings-outline" size={24} color="#E5E7EB" />
+        </Pressable>
       </View>
 
-      {/* Avatar + basic info */}
+      {/* PROFILE HEADER */}
       <View style={styles.topCard}>
-        <View style={styles.avatarCircle}>
-          <Text style={styles.avatarText}>{initials}</Text>
+        <View style={styles.avatarWrapper}>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarText}>{initials}</Text>
+          </View>
+
+          <Pressable style={styles.editPhotoBtn}>
+            <Ionicons name="camera-outline" size={16} color="#fff" />
+          </Pressable>
         </View>
 
-        <Text style={styles.nameText}>
-          {user?.name || "Amoura User"}
-        </Text>
+        <Text style={styles.nameText}>{user?.name || "Amoura User"}</Text>
+
+        {user?.age && (
+          <Text style={styles.ageText}>{user.age} years old</Text>
+        )}
+
         <Text style={styles.subText}>
-          {user?.email || "no-email@amoura.app"}
+          {user?.bio || "Add a short bio about yourself"}
         </Text>
 
-        <View style={styles.chipRow}>
-          {user?.gender && (
-            <View style={styles.chip}>
-              <Ionicons name="male-female-outline" size={14} color="#F9FAFB" />
-              <Text style={styles.chipText}>{user.gender}</Text>
-            </View>
-          )}
-
-          {user?.interests && user.interests.length > 0 && (
-            <View style={styles.chip}>
-              <Ionicons name="musical-notes-outline" size={14} color="#F9FAFB" />
-              <Text style={styles.chipText}>
-                {user.interests.slice(0, 2).join(" • ")}
-              </Text>
-            </View>
-          )}
-        </View>
+        {user?.location && (
+          <Text style={styles.locationText}>
+            <Ionicons name="location-outline" size={14} color="#EC4899" />{" "}
+            {user.location}
+          </Text>
+        )}
       </View>
 
-      {/* Stats row (dummy for now) */}
+      {/* QUICK STATS */}
       <View style={styles.statsRow}>
-        <View style={styles.statBox}>
-          <Text style={styles.statValue}>24</Text>
-          <Text style={styles.statLabel}>Matches</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statValue}>105</Text>
-          <Text style={styles.statLabel}>Likes</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statValue}>3</Text>
-          <Text style={styles.statLabel}>New</Text>
-        </View>
+        <StatBox value="105" label="Likes" />
+        <StatBox value="24" label="Matches" />
+        <StatBox value="Joined" label="2025" />
       </View>
 
-      {/* Simple sections (placeholders) */}
+      {/* GALLERY SECTION */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account</Text>
+        <Text style={styles.sectionTitle}>Photos</Text>
 
-        <View style={styles.rowItem}>
-          <Ionicons name="mail-outline" size={20} color="#E5E7EB" />
-          <View style={styles.rowTextWrap}>
-            <Text style={styles.rowTitle}>Email</Text>
-            <Text style={styles.rowSubtitle}>
-              {user?.email || "Add your email"}
-            </Text>
-          </View>
-        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {/* Add Photo */}
+          <Pressable style={styles.addPhotoBox}>
+            <Ionicons name="add" size={28} color="#fff" />
+          </Pressable>
 
-        <View style={styles.rowItem}>
-          <Ionicons name="shield-checkmark-outline" size={20} color="#E5E7EB" />
-          <View style={styles.rowTextWrap}>
-            <Text style={styles.rowTitle}>Safety & Privacy</Text>
-            <Text style={styles.rowSubtitle}>
-              Manage who can see your profile and matches.
-            </Text>
-          </View>
-        </View>
+          {/* Loaded photos */}
+          {user?.gallery?.map((img, i) => (
+            <Image key={i} source={{ uri: img }} style={styles.galleryImage} />
+          ))}
+        </ScrollView>
       </View>
 
-      {/* Logout button */}
+      {/* PERSONAL DETAILS */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Personal Details</Text>
+
+        <DetailRow icon="person-outline" label="Name" value={user?.name} />
+        <DetailRow icon="calendar-outline" label="Age" value={user?.age?.toString()} />
+        <DetailRow icon="male-female-outline" label="Gender" value={user?.gender} />
+        <DetailRow icon="heart-outline" label="Interests" value={user?.interests?.join(", ")} />
+        <DetailRow icon="book-outline" label="About Me" value={user?.bio} />
+        <DetailRow icon="walk-outline" label="Hobbies" value={user?.hobbies?.join(", ")} />
+        <DetailRow icon="search-outline" label="Looking For" value={user?.lookingFor} />
+      </View>
+
+      {/* PROFILE PROMPTS */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Profile Prompts</Text>
+
+        <PromptItem text="Two truths and a lie" />
+        <PromptItem text="My perfect date is…" />
+        <PromptItem text="The first thing people notice about me…" />
+      </View>
+
+      
+
+      {/* LOGOUT */}
       <Pressable style={styles.logoutBtn} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={20} color="#F9FAFB" />
         <Text style={styles.logoutText}>Log out</Text>
       </Pressable>
+    </ScrollView>
+  );
+}
+
+/* ========== SMALL COMPONENTS ========== */
+
+function DetailRow({ icon, label, value }: any) {
+  return (
+    <View style={styles.detailRow}>
+      <Ionicons name={icon} size={18} color="#E5E7EB" />
+      <View style={{ marginLeft: 10 }}>
+        <Text style={styles.detailLabel}>{label}</Text>
+        <Text style={styles.detailValue}>{value || "Add info"}</Text>
+      </View>
     </View>
   );
 }
+
+function PromptItem({ text }: any) {
+  return (
+    <View style={styles.promptBox}>
+      <Text style={styles.promptText}>{text}</Text>
+      <Ionicons name="chevron-forward" size={18} color="#A1A1AA" />
+    </View>
+  );
+}
+
+function StatBox({ value, label }: any) {
+  return (
+    <View style={styles.statBox}>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
+/* ========== STYLES ========== */
 
 const CARD_BG = "rgba(15,23,42,0.95)";
 
@@ -152,8 +201,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#020617",
-    paddingHorizontal: 20,
     paddingTop: 55,
+    paddingHorizontal: 20,
   },
   headerRow: {
     flexDirection: "row",
@@ -162,134 +211,169 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   headerTitle: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "700",
     color: "#F9FAFB",
   },
+
+  /* PROFILE HEADER */
   topCard: {
     backgroundColor: CARD_BG,
-    borderRadius: 22,
-    paddingVertical: 22,
+    borderRadius: 20,
+    paddingVertical: 24,
     paddingHorizontal: 16,
     alignItems: "center",
+    marginBottom: 20,
+    borderColor: "rgba(148,163,184,0.4)",
     borderWidth: 1,
-    borderColor: "rgba(148,163,184,0.5)",
+  },
+  avatarWrapper: {
+    position: "relative",
   },
   avatarCircle: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     backgroundColor: "rgba(15,23,42,0.9)",
     borderWidth: 2,
     borderColor: "#EC4899",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 10,
+  },
+  editPhotoBtn: {
+    position: "absolute",
+    bottom: -4,
+    right: -6,
+    backgroundColor: "#EC4899",
+    padding: 6,
+    borderRadius: 20,
   },
   avatarText: {
-    fontSize: 30,
+    fontSize: 34,
     fontWeight: "700",
-    color: "#F9FAFB",
+    color: "#fff",
   },
   nameText: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 22,
     color: "#F9FAFB",
-    marginBottom: 2,
+    fontWeight: "700",
+    marginTop: 10,
+  },
+  ageText: {
+    fontSize: 14,
+    color: "#D1D5DB",
+    marginTop: 4,
   },
   subText: {
     fontSize: 13,
-    color: "rgba(209,213,219,0.9)",
-    marginBottom: 10,
-  },
-  chipRow: {
-    flexDirection: "row",
-    gap: 8,
+    color: "#A1A1AA",
     marginTop: 6,
+    textAlign: "center",
   },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: "rgba(15,23,42,0.9)",
+  locationText: {
+    color: "#fff",
+    marginTop: 6,
+    fontSize: 13,
+  },
+
+  /* GALLERY */
+  addPhotoBox: {
+    width: 90,
+    height: 110,
+    backgroundColor: "rgba(30,41,59,0.8)",
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "rgba(148,163,184,0.9)",
-  },
-  chipText: {
-    color: "#F9FAFB",
-    fontSize: 12,
-    marginLeft: 4,
-  },
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 22,
-    marginBottom: 10,
-  },
-  statBox: {
-    flex: 1,
-    backgroundColor: CARD_BG,
-    borderRadius: 18,
-    paddingVertical: 12,
-    marginHorizontal: 4,
+    borderColor: "#EC4899",
     alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
   },
-  statValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#F9FAFB",
+  galleryImage: {
+    width: 90,
+    height: 110,
+    borderRadius: 16,
+    marginRight: 10,
   },
-  statLabel: {
-    fontSize: 12,
-    color: "rgba(148,163,184,0.95)",
-  },
+
+  /* SECTIONS */
   section: {
-    marginTop: 18,
     backgroundColor: CARD_BG,
     borderRadius: 20,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
+    marginBottom: 16,
+    padding: 16,
   },
   sectionTitle: {
     color: "#E5E7EB",
     fontWeight: "600",
-    marginBottom: 8,
-    fontSize: 14,
+    fontSize: 15,
+    marginBottom: 14,
   },
-  rowItem: {
+
+  /* PERSONAL DETAILS */
+  detailRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
+    marginBottom: 14,
   },
-  rowTextWrap: {
-    marginLeft: 10,
-    flex: 1,
-  },
-  rowTitle: {
+  detailLabel: {
     color: "#F9FAFB",
     fontSize: 14,
-    fontWeight: "500",
+    marginBottom: 2,
   },
-  rowSubtitle: {
-    color: "rgba(148,163,184,0.95)",
+  detailValue: {
+    color: "#A1A1AA",
     fontSize: 12,
-    marginTop: 2,
   },
-  logoutBtn: {
-    marginTop: 24,
-    width: "100%",
-    height: 52,
+
+  /* PROMPTS */
+  promptBox: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  promptText: {
+    color: "#F9FAFB",
+    fontSize: 14,
+  },
+
+  /* QUICK STATS */
+  statsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 20,
+  },
+  statBox: {
+    width: "32%",
+    backgroundColor: CARD_BG,
+    paddingVertical: 18,
     borderRadius: 18,
+    alignItems: "center",
+  },
+  statValue: {
+    color: "#F9FAFB",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  statLabel: {
+    color: "#A1A1AA",
+    fontSize: 12,
+    marginTop: 4,
+  },
+
+  /* LOGOUT */
+  logoutBtn: {
     backgroundColor: "#EF4444",
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
+    height: 50,
+    borderRadius: 18,
+    marginBottom: 60,
     gap: 8,
   },
   logoutText: {
-    color: "#F9FAFB",
+    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },

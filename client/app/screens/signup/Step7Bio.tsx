@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { patchMe } from "@/app/api";
+import { patchMe } from "../../api";
 
 const { width } = Dimensions.get("window");
 const CARD_MAX = 430;

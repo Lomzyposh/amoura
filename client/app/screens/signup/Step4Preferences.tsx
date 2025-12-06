@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { patchMe } from "@/app/api";
+import { patchMe } from "../../api";
 
 const { width } = Dimensions.get("window");
 
@@ -42,18 +42,18 @@ export default function Step4Preference() {
     { label: "Everyone", value: "everyone", icon: "people-outline" },
   ];
 
-const handleNext = async () => {
-  try {
-    await patchMe({
-      interestedIn: [selected],
-      onboardingStep: 4,
-    });
+  const handleNext = async () => {
+    try {
+      await patchMe({
+        interestedIn: [selected],
+        onboardingStep: 4,
+      });
 
-    router.push("/screens/signup/Step5Hobbies");
-  } catch (err: any) {
-    console.log("Preference update error:", err.message);
-  }
-};
+      router.push("/screens/signup/Step5Hobbies");
+    } catch (err: any) {
+      console.log("Preference update error:", err.message);
+    }
+  };
   return (
     <ImageBackground
       source={{
