@@ -23,6 +23,7 @@ export default function Step1Basic() {
   const [pass, setPass] = useState("");
   const [confirm, setConfirm] = useState("");
   const [checked, setChecked] = useState(false);
+  const [error, setError] = useState("");
 
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
@@ -83,7 +84,7 @@ export default function Step1Basic() {
     } catch (err: any) {
       console.log("Register error:", err);
       // You can add an error state like in login if you want:
-      // setError(err.message || "Unable to register");
+      setError(err.message || "Unable to register");
       shake();
     }
   };
@@ -121,6 +122,8 @@ export default function Step1Basic() {
             Let’s set up your profile. This helps us personalize your Amoura
             experience.
           </Text>
+
+          {error && <Text style={styles.error}>{error}</Text>}
 
           {/* FORM FIELDS */}
           <View style={{ marginTop: 20 }}>
@@ -219,14 +222,21 @@ export default function Step1Basic() {
               <Text style={styles.btnText}>Continue</Text>
             </View>
           </Pressable>
-          <Text style={{ marginTop: 15, color: "rgba(255,255,255,0.8)", fontSize: 14, textAlign: "center" }}>
+          <Text
+            style={{
+              marginTop: 15,
+              color: "rgba(255,255,255,0.8)",
+              fontSize: 14,
+              textAlign: "center",
+            }}
+          >
             Already have an account?{" "}
             <Text
               style={styles.link}
               onPress={() => router.push("/screens/login")}
-              >
+            >
               Log In
-              </Text>
+            </Text>
           </Text>
         </Animated.View>
       </View>
@@ -279,6 +289,10 @@ const styles = StyleSheet.create({
     color: "rgba(249,250,251,0.85)",
     fontSize: 11,
     letterSpacing: 0.6,
+  },
+
+  error: {
+    color: "red",
   },
 
   title: {

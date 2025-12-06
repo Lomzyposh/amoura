@@ -24,9 +24,21 @@ export default function Step5Hobbies() {
   const router = useRouter();
 
   const hobbies = [
-    "Reading", "Music", "Gym", "Cooking", "Gaming", "Movies",
-    "Dancing", "Fashion", "Travel", "Photography", "Art",
-    "Writing", "Swimming", "Tech", "Pets",
+    "Reading",
+    "Music",
+    "Gym",
+    "Cooking",
+    "Gaming",
+    "Movies",
+    "Dancing",
+    "Fashion",
+    "Travel",
+    "Photography",
+    "Art",
+    "Writing",
+    "Swimming",
+    "Tech",
+    "Pets",
   ];
 
   const animate = () => {
@@ -44,6 +56,11 @@ export default function Step5Hobbies() {
     ]).start();
   };
 
+  //   instruction for bio
+  // forgot password
+  // logout to login page not splash
+  // interests
+
   const toggleHobby = (item: string) => {
     animate();
     if (selected.includes(item)) {
@@ -57,18 +74,18 @@ export default function Step5Hobbies() {
     h.toLowerCase().includes(search.toLowerCase())
   );
 
-const handleNext = async () => {
-  try {
-    await patchMe({
-      interests: selected,
-      onboardingStep: 5,
-    });
+  const handleNext = async () => {
+    try {
+      await patchMe({
+        interests: selected,
+        onboardingStep: 5,
+      });
 
-    router.push("/screens/signup/Step6Photos");
-  } catch (err: any) {
-    console.log("Hobbies update error:", err.message);
-  }
-};
+      router.push("/screens/signup/Step6Photos");
+    } catch (err: any) {
+      console.log("Hobbies update error:", err.message);
+    }
+  };
   return (
     <ImageBackground
       source={{
@@ -155,10 +172,7 @@ const handleNext = async () => {
             style={{ marginTop: 20 }}
           >
             <View
-              style={[
-                styles.btn,
-                { opacity: selected.length >= 2 ? 1 : 0.4 },
-              ]}
+              style={[styles.btn, { opacity: selected.length >= 2 ? 1 : 0.4 }]}
             >
               <Text style={styles.btnText}>Continue</Text>
             </View>

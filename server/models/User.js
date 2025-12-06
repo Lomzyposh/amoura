@@ -41,7 +41,7 @@ const UserSchema = new Schema(
     // Preference – set at Step 4
     interestedIn: {
       type: [String],
-      enum: ["male", "female", "everyone"],
+      enum: ["male", "female", "men", "women", "everyone"],
       default: ["everyone"],
     },
 
@@ -80,6 +80,8 @@ const UserSchema = new Schema(
     isVerified: { type: Boolean, default: false },
 
     lastActiveAt: { type: Date, default: Date.now },
+    resetCode: { type: String },
+    resetCodeExpires: { type: Date },
   },
   { timestamps: true }
 );

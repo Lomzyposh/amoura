@@ -155,6 +155,7 @@ export default function Step2DOB() {
           onChange={handleChange}
           minimumDate={minDate}
           maximumDate={maxDate}
+          accentColor="#252525"
         />
       )}
     </ImageBackground>

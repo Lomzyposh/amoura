@@ -43,7 +43,7 @@ export default function ProfileScreen() {
     try {
       await AsyncStorage.removeItem("amoura_token");
       await AsyncStorage.removeItem("amoura_user");
-      router.replace("/"); // back to splash/login flow
+      router.replace("/screens/login");
     } catch (err) {
       console.log("Logout error:", err);
     }

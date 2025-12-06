@@ -48,7 +48,6 @@ const WelcomeScreen: React.FC = () => {
       style={styles.root}
       resizeMode="cover"
     >
-      {/* Dark gradient overlay same vibe as login */}
       <LinearGradient
         colors={["#0B132B", "#2E1A3F", "#1A0E24"]}
         start={{ x: 0, y: 1 }}

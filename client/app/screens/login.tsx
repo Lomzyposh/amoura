@@ -204,7 +204,7 @@ const LoginScreen: React.FC = () => {
             </View>
 
             {/* FORGOT PASSWORD */}
-            <Pressable style={styles.forgotWrapper}>
+            <Pressable style={styles.forgotWrapper} onPress={() => router.push("/screens/ForgotPassword")}>
               <Text style={styles.forgot}>Forgot password?</Text>
             </Pressable>
 
@@ -233,7 +233,6 @@ const LoginScreen: React.FC = () => {
               </Pressable>
             </Animated.View>
 
-            {/* SIGN UP */}
             <View style={styles.footerRow}>
               <Text style={styles.accountText}>Don’t have an account?</Text>
               <Pressable onPress={handleGoToSignup} hitSlop={10}>
