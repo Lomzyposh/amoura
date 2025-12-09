@@ -8,6 +8,7 @@ import {
   Alert,
   Switch,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
@@ -25,6 +26,16 @@ export default function SettingsScreen() {
         { text: "Delete", style: "destructive", onPress: () => console.log("Deleted") },
       ]
     );
+  };
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("amoura_token");
+      await AsyncStorage.removeItem("amoura_user");
+      router.replace("/");
+    } catch (err) {
+      console.log("Logout error:", err);
+    }
   };
 
   const SectionCard = ({ title, children }: any) => (
@@ -55,7 +66,7 @@ export default function SettingsScreen() {
     <ScrollView style={styles.container}>
       {/* HEADER */}
       <View style={styles.headerRow}>
-        <Pressable onPress={() => router.back()}>
+        <Pressable onPress={() => router.replace("/main/profile")}>
           <Ionicons name="arrow-back" size={24} color="#E5E7EB" />
         </Pressable>
         <Text style={styles.headerTitle}>Settings</Text>
@@ -91,7 +102,7 @@ export default function SettingsScreen() {
         <RowItem
           label="Log Out"
           icon="log-out-outline"
-          onPress={() => router.replace("/")}
+          onPress={handleLogout}
         />
       </SectionCard>
 
