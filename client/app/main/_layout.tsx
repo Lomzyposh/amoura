@@ -3,8 +3,8 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Platform } from "react-native";
 
-const ACTIVE_COLOR = "#EC4899"; // pink
-const INACTIVE_COLOR = "rgba(148,163,184,0.85)"; // slate
+const ACTIVE_COLOR = "#EC4899"; // Pink
+const INACTIVE_COLOR = "rgba(148,163,184,0.85)"; // Slate
 const BG_COLOR = "#0B132B";
 
 export default function MainLayout() {
@@ -23,6 +23,7 @@ export default function MainLayout() {
         tabBarInactiveTintColor: INACTIVE_COLOR,
       }}
     >
+      {/* HOME */}
       <Tabs.Screen
         name="home"
         options={{
@@ -33,12 +34,15 @@ export default function MainLayout() {
         }}
       />
 
+      {/* Prevent route listing index.jsx */}
       <Tabs.Screen
         name="index"
         options={{
           href: null,
         }}
       />
+
+      {/* FOR YOU */}
       <Tabs.Screen
         name="for-you"
         options={{
@@ -49,6 +53,7 @@ export default function MainLayout() {
         }}
       />
 
+      {/* LIKE YOU */}
       <Tabs.Screen
         name="like-you"
         options={{
@@ -59,6 +64,7 @@ export default function MainLayout() {
         }}
       />
 
+      {/* CHAT (user chats) */}
       <Tabs.Screen
         name="chat"
         options={{
@@ -69,6 +75,18 @@ export default function MainLayout() {
         }}
       />
 
+      {/* ⭐ AI ASSISTANT — NEW TAB */}
+      <Tabs.Screen
+        name="ai"
+        options={{
+          title: "AI",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="sparkles" size={size} color={color} />
+          ),
+        }}
+      />
+
+      {/* PROFILE */}
       <Tabs.Screen
         name="profile"
         options={{
