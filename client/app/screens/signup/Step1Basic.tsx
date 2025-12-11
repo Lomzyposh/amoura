@@ -224,9 +224,9 @@ export default function Step1Basic() {
             <Text
               style={styles.link}
               onPress={() => router.push("/screens/login")}
-              >
+            >
               Log In
-              </Text>
+            </Text>
           </Text>
         </Animated.View>
       </View>

@@ -9,7 +9,7 @@ import {
   ImageBackground,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { patchMe } from "@/app/api";
+import { patchMe } from "../../api";
 
 export default function Step3Gender() {
   const [selected, setSelected] = useState<string | null>(null);

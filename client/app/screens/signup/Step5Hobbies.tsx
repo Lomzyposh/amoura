@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { patchMe } from "@/app/api";
+import { patchMe } from "../../api";
 
 const { width } = Dimensions.get("window");
 
@@ -57,18 +57,18 @@ export default function Step5Hobbies() {
     h.toLowerCase().includes(search.toLowerCase())
   );
 
-const handleNext = async () => {
-  try {
-    await patchMe({
-      interests: selected,
-      onboardingStep: 5,
-    });
+  const handleNext = async () => {
+    try {
+      await patchMe({
+        interests: selected,
+        onboardingStep: 5,
+      });
 
-    router.push("/screens/signup/Step6Photos");
-  } catch (err: any) {
-    console.log("Hobbies update error:", err.message);
-  }
-};
+      router.push("/screens/signup/Step6Photos");
+    } catch (err: any) {
+      console.log("Hobbies update error:", err.message);
+    }
+  };
   return (
     <ImageBackground
       source={{
