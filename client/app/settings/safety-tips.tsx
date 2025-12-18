@@ -37,14 +37,14 @@ export default function SafetyReportScreen() {
       </View>
 
       {/* Report User */}
-      <View style={styles.section}>
+      {/* <View style={styles.section}>
         <Text style={styles.sectionTitle}>Report User</Text>
         {reportReasons.map((reason, i) => (
           <Pressable key={i} style={styles.reportBtn} onPress={() => handleReport(reason)}>
             <Text style={styles.reportText}>{reason}</Text>
           </Pressable>
         ))}
-      </View>
+      </View> */}
     </ScrollView>
   );
 }

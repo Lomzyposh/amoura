@@ -6,245 +6,354 @@ import {
   StyleSheet,
   Pressable,
   Alert,
-  Switch,
 } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
-const CARD_BG = "rgba(15,23,42,0.95)";
+const BG = "#070A17";
+const CARD = "rgba(255,255,255,0.06)";
+const BORDER = "rgba(255,255,255,0.10)";
+const TEXT = "#FFFFFF";
+const MUTED = "rgba(255,255,255,0.68)";
+const ACCENT = "#EAD0F7";
 
 export default function SettingsScreen() {
   const router = useRouter();
 
+  const handleLogout = () => {
+    Alert.alert("Log out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log out",
+        style: "destructive",
+        onPress: () => router.replace("/"),
+      },
+    ]);
+  };
+
   const handleDeleteAccount = () => {
     Alert.alert(
-      "Delete Account",
-      "Are you sure? This action is permanent.",
+      "Delete account",
+      "This action is permanent. Your profile, matches, and chats will be removed.",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: () => console.log("Deleted") },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => console.log("TODO: call delete endpoint"),
+        },
       ]
     );
   };
 
-  const SectionCard = ({ title, children }: any) => (
+  const Section = ({ title, children }: any) => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
-      {children}
+      <View style={styles.sectionBody}>{children}</View>
     </View>
   );
 
-  const RowItem = ({ label, icon, onPress }: any) => (
-    <Pressable style={styles.rowItem} onPress={onPress}>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Ionicons name={icon} size={20} color="#E5E7EB" />
-        <Text style={styles.rowLabel}>{label}</Text>
+  const Row = ({ label, icon, hint, onPress, danger }: any) => (
+    <Pressable
+      style={({ pressed }) => [
+        styles.row,
+        pressed && { opacity: 0.9, transform: [{ scale: 0.99 }] },
+      ]}
+      onPress={onPress}
+    >
+      <View style={styles.rowLeft}>
+        <View style={[styles.iconPill, danger && styles.iconPillDanger]}>
+          <Ionicons
+            name={icon}
+            size={18}
+            color={danger ? "rgba(255,90,90,0.95)" : ACCENT}
+          />
+        </View>
+
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.rowLabel, danger && styles.rowLabelDanger]}>
+            {label}
+          </Text>
+          {!!hint && <Text style={styles.rowHint}>{hint}</Text>}
+        </View>
       </View>
-      <Ionicons name="chevron-forward" size={18} color="#A1A1AA" />
+
+      <Ionicons
+        name="chevron-forward"
+        size={18}
+        color="rgba(255,255,255,0.35)"
+      />
     </Pressable>
   );
 
-  const ToggleItem = ({ label, value, onChange }: any) => (
-    <View style={styles.rowItem}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Switch value={value} onValueChange={onChange} />
-    </View>
-  );
-
   return (
-    <ScrollView style={styles.container}>
-      {/* HEADER */}
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Header */}
       <View style={styles.headerRow}>
-        <Pressable onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#E5E7EB" />
+        <Pressable
+          onPress={() => router.back()}
+          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
+          hitSlop={10}
+        >
+          <Ionicons name="arrow-back" size={22} color={TEXT} />
         </Pressable>
+
         <Text style={styles.headerTitle}>Settings</Text>
-        <View style={{ width: 24 }} />
+        <View style={{ width: 40 }} />
       </View>
 
-      {/* =============== ACCOUNT SETTINGS =============== */}
-      <SectionCard title="Account Settings">
-        <RowItem
-          label="Edit Profile"
-          icon="person-circle-outline"
+      {/* Account */}
+      <Section title="Account">
+        <Row
+          label="Edit profile"
+          hint="Photos, bio, preferences"
+          icon="person-outline"
           onPress={() => router.push("/settings/edit-profile")}
         />
-
-        <RowItem
-          label="Change Password"
+        <Row
+          label="Change password"
+          hint="Update your login password"
           icon="lock-closed-outline"
           onPress={() => router.push("/settings/change-password")}
         />
-
-        <RowItem
+        <Row
           label="Verification"
+          hint="Increase trust on your profile"
           icon="shield-checkmark-outline"
           onPress={() => router.push("/settings/verification")}
         />
+      </Section>
 
-        <RowItem
-          label="Delete Account"
-          icon="trash-outline"
-          onPress={handleDeleteAccount}
-        />
-
-        <RowItem
-          label="Log Out"
-          icon="log-out-outline"
-          onPress={() => router.replace("/")}
-        />
-      </SectionCard>
-
-      {/* =============== PRIVACY SETTINGS =============== */}
-      <SectionCard title="Privacy Settings">
-        <RowItem
-          label="Blocked Users"
+      {/* Privacy & Safety */}
+      <Section title="Privacy & Safety">
+        <Row
+          label="Blocked users"
+          hint="Manage people you blocked"
           icon="remove-circle-outline"
           onPress={() => router.push("/settings/blocked-users")}
         />
-
-        <ToggleItem label="Profile Visibility" value={true} onChange={() => {}} />
-
-        <ToggleItem label="Hide Age" value={false} onChange={() => {}} />
-
-        <ToggleItem label="Hide Distance" value={false} onChange={() => {}} />
-
-        <ToggleItem label="Allow Usage Data" value={true} onChange={() => {}} />
-
-        <ToggleItem
-          label="Low Data Mode"
-          value={false}
-          onChange={() => {}}
-        />
-      </SectionCard>
-
-      {/* =============== SAFETY SETTINGS =============== */}
-      <SectionCard title="Safety & Reporting">
-        <RowItem
-          label="Report a User"
+        <Row
+          label="Report an Issue"
+          hint="Help keep Amoura safe"
           icon="flag-outline"
           onPress={() => router.push("/settings/report-user")}
         />
-
-        <RowItem
-          label="Safety Tips"
+        <Row
+          label="Safety tips"
+          hint="Meet safely and smartly"
           icon="help-circle-outline"
           onPress={() => router.push("/settings/safety-tips")}
         />
+      </Section>
 
-        <ToggleItem
-          label="Image Safety Filter"
-          value={true}
-          onChange={() => {}}
-        />
-
-        <ToggleItem
-          label="Nudity Protection AI"
-          value={true}
-          onChange={() => {}}
-        />
-      </SectionCard>
-
-      {/* =============== APP SETTINGS =============== */}
-      <SectionCard title="App Settings">
-        <RowItem
-          label="Notification Settings"
+      {/* Notifications */}
+      <Section title="Notifications">
+        <Row
+          label="Notification settings"
+          hint="Matches, likes, and messages"
           icon="notifications-outline"
           onPress={() => router.push("/settings/notifications")}
         />
+      </Section>
 
-        <RowItem
-          label="Language"
-          icon="language-outline"
-          onPress={() => router.push("/settings/language")}
-        />
-
-        <RowItem
-          label="Appearance"
-          icon="color-palette-outline"
-          onPress={() => router.push("/settings/appearance")}
-        />
-      </SectionCard>
-
-      {/* =============== LEGAL =============== */}
-      <SectionCard title="Legal Documents">
-        <RowItem
-          label="Terms & Conditions"
-          icon="document-text-outline"
-          onPress={() => router.push("/settings/terms")}
-        />
-
-        <RowItem
-          label="Privacy Policy"
+      {/* Legal */}
+      <Section title="Legal">
+        <Row
+          label="Privacy policy"
           icon="shield-outline"
           onPress={() => router.push("/settings/privacy")}
         />
-
-        <RowItem
-          label="Community Guidelines"
+        <Row
+          label="Terms & conditions"
+          icon="document-text-outline"
+          onPress={() => router.push("/settings/terms")}
+        />
+        <Row
+          label="Community guidelines"
           icon="book-outline"
           onPress={() => router.push("/settings/guidelines")}
         />
-      </SectionCard>
+      </Section>
 
-      <View style={{ height: 50 }} />
+      {/* Danger zone */}
+      <View style={styles.dangerZone}>
+        <Text style={styles.dangerTitle}>Danger zone</Text>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.dangerBtn,
+            pressed && { opacity: 0.9 },
+          ]}
+          onPress={handleLogout}
+        >
+          <Ionicons name="log-out-outline" size={18} color={TEXT} />
+          <Text style={styles.dangerBtnText}>Log out</Text>
+        </Pressable>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.deleteBtn,
+            pressed && { opacity: 0.9 },
+          ]}
+          onPress={handleDeleteAccount}
+        >
+          <Ionicons name="trash-outline" size={18} color="#FFF" />
+          <Text style={styles.deleteBtnText}>Delete account</Text>
+        </Pressable>
+      </View>
+
+      <View style={{ height: 28 }} />
     </ScrollView>
   );
 }
 
-/* ======================================================
-                      STYLES
-====================================================== */
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#020617",
+    backgroundColor: BG,
     paddingTop: 55,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
+  },
+  content: {
+    paddingTop: 18,
+    paddingHorizontal: 16,
   },
 
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
+    marginBottom: 14,
   },
-
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   headerTitle: {
-    color: "#F9FAFB",
+    color: ACCENT,
     fontSize: 22,
-    fontWeight: "700",
+    fontWeight: "900",
+    letterSpacing: 0.2,
+    fontFamily: "serif",
   },
 
   section: {
-    backgroundColor: CARD_BG,
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 18,
-    borderWidth: 1,
-    borderColor: "rgba(148,163,184,0.35)",
+    marginTop: 12,
   },
-
   sectionTitle: {
-    color: "#E5E7EB",
-    fontSize: 15,
-    fontWeight: "600",
-    marginBottom: 12,
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 1.1,
+    textTransform: "uppercase",
+    marginBottom: 10,
+    marginLeft: 4,
+  },
+  sectionBody: {
+    backgroundColor: CARD,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: BORDER,
+    overflow: "hidden",
   },
 
-  rowItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  row: {
     paddingVertical: 14,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.05)",
+    borderBottomColor: "rgba(255,255,255,0.06)",
+  },
+  rowLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+    paddingRight: 10,
+  },
+  iconPill: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: "rgba(234,208,247,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(234,208,247,0.22)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconPillDanger: {
+    backgroundColor: "rgba(255,90,90,0.12)",
+    borderColor: "rgba(255,90,90,0.22)",
+  },
+  rowLabel: {
+    color: TEXT,
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  rowLabelDanger: {
+    color: "rgba(255,120,120,0.95)",
+  },
+  rowHint: {
+    marginTop: 2,
+    color: MUTED,
+    fontSize: 12.5,
+    lineHeight: 16,
   },
 
-  rowLabel: {
-    marginLeft: 10,
-    color: "#F9FAFB",
+  dangerZone: {
+    marginTop: 18,
+    marginBottom: 30,
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255,90,90,0.20)",
+    backgroundColor: "rgba(255,90,90,0.06)",
+  },
+  dangerTitle: {
+    color: "rgba(255,255,255,0.75)",
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 1.1,
+    textTransform: "uppercase",
+    marginBottom: 10,
+  },
+  dangerBtn: {
+    height: 52,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginBottom: 10,
+  },
+  dangerBtnText: {
+    color: TEXT,
+    fontWeight: "900",
+    fontSize: 14,
+  },
+  deleteBtn: {
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,90,90,0.85)",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+  deleteBtnText: {
+    color: "#FFF",
+    fontWeight: "900",
     fontSize: 14,
   },
 });

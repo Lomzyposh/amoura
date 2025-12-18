@@ -12,10 +12,9 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { requestPasswordReset } from "../api"; // adjust path
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { resetPasswordWithCode } from "../api"; // adjust path
 
-// Theme like Settings
 const BG = "#070A17";
 const CARD = "rgba(255,255,255,0.06)";
 const BORDER = "rgba(255,255,255,0.10)";
@@ -23,34 +22,46 @@ const TEXT = "#FFFFFF";
 const MUTED = "rgba(255,255,255,0.68)";
 const ACCENT = "#EAD0F7";
 
-export default function ForgotPasswordScreen() {
+export default function ResetPasswordScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const params = useLocalSearchParams();
+  const prefilledEmail = typeof params.email === "string" ? params.email : "";
+
+  const [email, setEmail] = useState(prefilledEmail);
+  const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSend = async () => {
-    const clean = email.trim().toLowerCase();
-    if (!clean) {
-      Alert.alert("Oops 😄", "Please enter your email.");
+  const handleReset = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !code.trim() || !newPassword || !confirm) {
+      Alert.alert("Error", "Please fill in all fields.");
+      return;
+    }
+    if (newPassword !== confirm) {
+      Alert.alert("Error", "Passwords do not match.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      Alert.alert("Too short", "Password should be at least 6 characters.");
       return;
     }
 
     try {
       setLoading(true);
-      await requestPasswordReset(clean);
-
-      Alert.alert(
-        "Check your email ✨",
-        "If an account exists for that email, we’ve sent a reset code."
-      );
-
-      // Go to reset screen; user will paste OTP there
-      router.push({
-        pathname: "./reset-password",
-        params: { email: clean },
+      await resetPasswordWithCode({
+        email: cleanEmail,
+        code: code.trim(),
+        newPassword,
       });
+
+      Alert.alert("Success ✨", "Password reset successfully. Please log in.");
+      router.replace("/"); // or "/auth/login" depending on your routing
     } catch (e: any) {
-      Alert.alert("Couldn’t send", e?.message || "Something went wrong.");
+      Alert.alert("Couldn’t reset", e?.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }
@@ -68,7 +79,6 @@ export default function ForgotPasswordScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View style={styles.headerRow}>
           <Pressable
             onPress={() => router.back()}
@@ -81,27 +91,52 @@ export default function ForgotPasswordScreen() {
             <Ionicons name="arrow-back" size={22} color={TEXT} />
           </Pressable>
 
-          <Text style={styles.headerTitle}>Forgot Password</Text>
+          <Text style={styles.headerTitle}>Reset Password</Text>
           <View style={{ width: 40 }} />
         </View>
 
         <Text style={styles.infoText}>
-          Enter your email and we’ll send a reset code.
+          Enter the code sent to your email, then choose a new password. Check your spam folder if you don't see it.
         </Text>
 
         <View style={styles.card}>
-          <Text style={styles.label}>Email</Text>
+          <Label text="Email" />
           <TextInput
             value={email}
             onChangeText={setEmail}
             style={styles.input}
             placeholder="you@example.com"
             placeholderTextColor="rgba(255,255,255,0.35)"
-            keyboardType="email-address"
             autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="send"
-            onSubmitEditing={handleSend}
+            keyboardType="email-address"
+          />
+
+          <Label text="Reset code" />
+          <TextInput
+            value={code}
+            onChangeText={setCode}
+            style={styles.input}
+            placeholder="e.g. 123456"
+            placeholderTextColor="rgba(255,255,255,0.35)"
+            keyboardType="number-pad"
+          />
+
+          <Label text="New password" />
+          <PasswordRow
+            value={newPassword}
+            onChange={setNewPassword}
+            show={showNew}
+            setShow={setShowNew}
+            placeholder="New password"
+          />
+
+          <Label text="Confirm password" />
+          <PasswordRow
+            value={confirm}
+            onChange={setConfirm}
+            show={showConfirm}
+            setShow={setShowConfirm}
+            placeholder="Confirm password"
           />
 
           <Pressable
@@ -110,7 +145,7 @@ export default function ForgotPasswordScreen() {
               pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] },
               loading && { opacity: 0.6 },
             ]}
-            onPress={handleSend}
+            onPress={handleReset}
             disabled={loading}
           >
             {loading ? (
@@ -118,10 +153,10 @@ export default function ForgotPasswordScreen() {
                 style={{ flexDirection: "row", gap: 10, alignItems: "center" }}
               >
                 <ActivityIndicator />
-                <Text style={styles.primaryBtnText}>Sending…</Text>
+                <Text style={styles.primaryBtnText}>Resetting…</Text>
               </View>
             ) : (
-              <Text style={styles.primaryBtnText}>Send reset code</Text>
+              <Text style={styles.primaryBtnText}>Reset password</Text>
             )}
           </Pressable>
         </View>
@@ -132,13 +167,34 @@ export default function ForgotPasswordScreen() {
   );
 }
 
+function Label({ text }: { text: string }) {
+  return <Text style={styles.label}>{text}</Text>;
+}
+
+function PasswordRow({ value, onChange, show, setShow, placeholder }: any) {
+  return (
+    <View style={styles.passwordRow}>
+      <TextInput
+        style={[styles.inputField, { borderWidth: 0 }]}
+        value={value}
+        onChangeText={onChange}
+        secureTextEntry={!show}
+        placeholder={placeholder}
+        placeholderTextColor="rgba(255,255,255,0.35)"
+      />
+      <Pressable onPress={() => setShow(!show)} hitSlop={10}>
+        <Ionicons
+          name={show ? "eye-off-outline" : "eye-outline"}
+          size={20}
+          color="rgba(255,255,255,0.55)"
+        />
+      </Pressable>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: BG,
-    paddingTop: 55,
-    paddingHorizontal: 10,
-  },
+  container: { flex: 1, backgroundColor: BG, paddingTop: 55, paddingHorizontal: 10 },
   content: { paddingTop: 18, paddingHorizontal: 16 },
 
   headerRow: {
@@ -164,11 +220,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
     fontFamily: "serif",
   },
-  infoText: {
-    color: MUTED,
-    fontSize: 13,
-    marginBottom: 16,
-  },
+  infoText: { color: MUTED, fontSize: 13, marginBottom: 16 },
+
   card: {
     backgroundColor: CARD,
     borderRadius: 18,
@@ -183,7 +236,9 @@ const styles = StyleSheet.create({
     letterSpacing: 1.1,
     textTransform: "uppercase",
     marginBottom: 8,
+    marginTop: 10,
   },
+
   input: {
     backgroundColor: "rgba(255,255,255,0.06)",
     borderRadius: 14,
@@ -193,9 +248,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.10)",
-    marginBottom: 12,
   },
+
+  passwordRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
+    paddingHorizontal: 12,
+  },
+  inputField: { flex: 1, color: TEXT, height: 46 },
+
   primaryBtn: {
+    marginTop: 16,
     height: 52,
     borderRadius: 16,
     borderWidth: 1,
