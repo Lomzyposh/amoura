@@ -8,5 +8,8 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
+  },
+  "dependencies": {
+    "lucide-react-native": "^0.561.0"
   }
 }

@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.2:5000/api";
+  process.env.EXPO_PUBLIC_API_URL || "http://10.157.94.54:5000/api";
 // 10.0.2.2 = Android emulator talking to your localhost
 // Change to your LAN IP like "http://192.168.x.x:5000/api" when testing on device
 export async function postJSON(path: string, body: any) {

@@ -1,4 +1,3 @@
-// ProfileScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -8,11 +7,9 @@ import {
   Image,
   Dimensions,
   ScrollView,
-  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as ImagePicker from "expo-image-picker";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
@@ -27,100 +24,27 @@ interface StoredUser {
   hobbies?: string[];
   interests?: string[];
   lookingFor?: string;
-  profilePic?: string; // optional profile picture uri
-  gallery?: string[]; // image URIs
+  gallery?: string[]; // image URLs
 }
 
 export default function ProfileScreen() {
   const router = useRouter();
   const [user, setUser] = useState<StoredUser | null>(null);
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
   useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const raw = await AsyncStorage.getItem("amoura_user");
+        if (raw) {
+          setUser(JSON.parse(raw));
+        }
+      } catch (err) {
+        console.log("Failed to load user:", err);
+      }
+    };
+
     loadUser();
-    requestPermission();
   }, []);
-
-  const loadUser = async () => {
-    try {
-      const raw = await AsyncStorage.getItem("amoura_user");
-      if (raw) setUser(JSON.parse(raw));
-    } catch (err) {
-      console.log("Failed to load user:", err);
-    }
-  };
-
-  const saveUser = async (updated: StoredUser) => {
-    try {
-      await AsyncStorage.setItem("amoura_user", JSON.stringify(updated));
-      setUser(updated);
-    } catch (err) {
-      console.log("Failed to save user:", err);
-    }
-  };
-
-  const requestPermission = async () => {
-    try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      setHasPermission(status === "granted");
-      if (status !== "granted") {
-        Alert.alert(
-          "Permission required",
-          "We need permission to access your photos to let you upload pictures."
-        );
-      }
-    } catch (err) {
-      console.log("Permission error:", err);
-      setHasPermission(false);
-    }
-  };
-
-  /**
-   * Pick image from device gallery.
-   * type: "profile" -> sets profilePic
-   * type: "gallery" -> appends to gallery
-   */
-  const pickImage = async (type: "profile" | "gallery") => {
-    if (hasPermission === false) {
-      Alert.alert(
-        "No access",
-        "Please enable photo permissions in your device settings."
-      );
-      return;
-    }
-
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.7,
-        allowsEditing: true,
-        aspect: [4, 4],
-      });
-
-      // result.canceled for SDK 48+; older SDKs return result.uri
-      // handle both shapes
-      const canceled = (result as any).canceled ?? !(result as any).uri;
-      if (canceled) return;
-
-      // new SDK: result.assets[0].uri
-      const uri =
-        (result as any).assets?.[0]?.uri ?? (result as any).uri ?? null;
-
-      if (!uri) return;
-
-      const updated: StoredUser = { ...(user as StoredUser) };
-      if (type === "profile") {
-        updated.profilePic = uri;
-      } else {
-        updated.gallery = [...(user?.gallery || []), uri];
-      }
-
-      await saveUser(updated);
-    } catch (err) {
-      console.log("Pick image error:", err);
-      Alert.alert("Error", "Could not pick image. Try again.");
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -139,34 +63,8 @@ export default function ProfileScreen() {
       .join("")
       .toUpperCase() || "A";
 
-  /* long press on a gallery image -> offer actions */
-  const onLongPressGalleryImage = (uri: string, index: number) => {
-    Alert.alert("Photo options", undefined, [
-      {
-        text: "Set as profile picture",
-        onPress: async () => {
-          const updated: StoredUser = { ...(user as StoredUser) };
-          updated.profilePic = uri;
-          await saveUser(updated);
-        },
-      },
-      {
-        text: "Delete photo",
-        style: "destructive",
-        onPress: async () => {
-          const updated: StoredUser = { ...(user as StoredUser) };
-          updated.gallery = (updated.gallery || []).filter((u) => u !== uri);
-          // if deleted photo was profilePic, clear it
-          if (updated.profilePic === uri) updated.profilePic = undefined;
-          await saveUser(updated);
-        },
-      },
-      { text: "Cancel", style: "cancel" },
-    ]);
-  };
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }}>
+    <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.headerRow}>
         <Text style={styles.headerTitle}>Profile</Text>
@@ -179,34 +77,29 @@ export default function ProfileScreen() {
       {/* PROFILE HEADER */}
       <View style={styles.topCard}>
         <View style={styles.avatarWrapper}>
-          {/* Main profile picture */}
-          {user?.profilePic ? (
-            <Image source={{ uri: user.profilePic }} style={styles.avatarImage} />
-          ) : (
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>{initials}</Text>
-            </View>
-          )}
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarText}>{initials}</Text>
+          </View>
 
-          {/* Change profile picture */}
-          <Pressable
-            style={styles.editPhotoBtn}
-            onPress={() => pickImage("profile")}
-            hitSlop={8}
-          >
+          <Pressable style={styles.editPhotoBtn}>
             <Ionicons name="camera-outline" size={16} color="#fff" />
           </Pressable>
         </View>
 
         <Text style={styles.nameText}>{user?.name || "Amoura User"}</Text>
 
-        {user?.age && <Text style={styles.ageText}>{user.age} years old</Text>}
+        {user?.age && (
+          <Text style={styles.ageText}>{user.age} years old</Text>
+        )}
 
-        <Text style={styles.subText}>{user?.bio || "Add a short bio about yourself"}</Text>
+        <Text style={styles.subText}>
+          {user?.bio || "Add a short bio about yourself"}
+        </Text>
 
         {user?.location && (
           <Text style={styles.locationText}>
-            <Ionicons name="location-outline" size={14} color="#EC4899" /> {user.location}
+            <Ionicons name="location-outline" size={14} color="#EC4899" />{" "}
+            {user.location}
           </Text>
         )}
       </View>
@@ -218,30 +111,21 @@ export default function ProfileScreen() {
         <StatBox value="Joined" label="2025" />
       </View>
 
-      {/* GALLERY */}
+      {/* GALLERY SECTION */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Photos</Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {/* Add new photo */}
-          <Pressable style={styles.addPhotoBox} onPress={() => pickImage("gallery")}>
+          {/* Add Photo */}
+          <Pressable style={styles.addPhotoBox}>
             <Ionicons name="add" size={28} color="#fff" />
           </Pressable>
 
-          {/* Render gallery photos */}
-          {user?.gallery?.map((img, index) => (
-            <Pressable
-              key={index}
-              onLongPress={() => onLongPressGalleryImage(img, index)}
-              style={{ marginRight: 10 }}
-            >
-              <Image source={{ uri: img }} style={styles.galleryImage} />
-            </Pressable>
+          {/* Loaded photos */}
+          {user?.gallery?.map((img, i) => (
+            <Image key={i} source={{ uri: img }} style={styles.galleryImage} />
           ))}
         </ScrollView>
-        <Text style={{ color: "#A1A1AA", fontSize: 12, marginTop: 8 }}>
-          Long-press a photo to set as profile picture or delete.
-        </Text>
       </View>
 
       {/* PERSONAL DETAILS */}
@@ -251,9 +135,9 @@ export default function ProfileScreen() {
         <DetailRow icon="person-outline" label="Name" value={user?.name} />
         <DetailRow icon="calendar-outline" label="Age" value={user?.age?.toString()} />
         <DetailRow icon="male-female-outline" label="Gender" value={user?.gender} />
-        <DetailRow icon="heart-outline" label="Interests" value={(user?.interests || []).join(", ")} />
+        <DetailRow icon="heart-outline" label="Interests" value={user?.interests?.join(", ")} />
         <DetailRow icon="book-outline" label="About Me" value={user?.bio} />
-        <DetailRow icon="walk-outline" label="Hobbies" value={(user?.hobbies || []).join(", ")} />
+        <DetailRow icon="walk-outline" label="Hobbies" value={user?.hobbies?.join(", ")} />
         <DetailRow icon="search-outline" label="Looking For" value={user?.lookingFor} />
       </View>
 
@@ -265,6 +149,8 @@ export default function ProfileScreen() {
         <PromptItem text="My perfect date is…" />
         <PromptItem text="The first thing people notice about me…" />
       </View>
+
+      
 
       {/* LOGOUT */}
       <Pressable style={styles.logoutBtn} onPress={handleLogout}>
@@ -329,6 +215,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#F9FAFB",
   },
+
   /* PROFILE HEADER */
   topCard: {
     backgroundColor: CARD_BG,
@@ -343,13 +230,6 @@ const styles = StyleSheet.create({
   avatarWrapper: {
     position: "relative",
   },
-  avatarImage: {
-    width: 95,
-    height: 95,
-    borderRadius: 48,
-    borderWidth: 2,
-    borderColor: "#EC4899",
-  },
   avatarCircle: {
     width: 90,
     height: 90,
@@ -362,7 +242,7 @@ const styles = StyleSheet.create({
   },
   editPhotoBtn: {
     position: "absolute",
-    bottom: -5,
+    bottom: -4,
     right: -6,
     backgroundColor: "#EC4899",
     padding: 6,
@@ -479,23 +359,6 @@ const styles = StyleSheet.create({
     color: "#A1A1AA",
     fontSize: 12,
     marginTop: 4,
-  },
-
-  /* PERSONAL DETAILS */
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 14,
-  },
-  detailLabel: {
-    color: "#F9FAFB",
-    fontSize: 14,
-    marginBottom: 2,
-  },
-
-  detailValue: {
-    color: "#A1A1AA",
-    fontSize: 12,
   },
 
   /* LOGOUT */
