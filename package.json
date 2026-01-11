@@ -1,12 +1,10 @@
 {
-  "name": "amoura-root",
+  "name": "amoura-frontend",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev --prefix server\" \"npm start --prefix client\"",
-    "server": "npm run dev --prefix server",
-    "client": "npm start --prefix client"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.0"
+    "dev": "npm start --prefix client",
+    "client": "npm start --prefix client",
+    "build": "npm run build --prefix client",
+    "test": "npm test --prefix client"
   }
 }
